@@ -1,6 +1,7 @@
 ﻿using Api.Configuration;
 using Api.Models;
 using Api.Services;
+using Api.Utilities;
 using Data.Context;
 using Data.Models;
 using Google.Apis.Auth;
@@ -32,86 +33,74 @@ public static class AuthRouter
     }
 
     private static async Task<IResult> Password(PasswordInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
+        => await U.CatchUnexpected(async () =>
     {
-        try
+        var user = await userManager.FindByEmailAsync(input.Email);
+
+        if (user == null)
         {
-            var user = await userManager.FindByEmailAsync(input.Email);
-            var validUser = false;
-
-            if (user == null)
+            user = new()
             {
-                user = new()
-                {
-                    UserName = input.Email,
-                    Email = input.Email,
-                };
-                var res = await userManager.CreateAsync(user, input.Password);
+                UserName = input.Email,
+                Email = input.Email,
+            };
+            var res = await userManager.CreateAsync(user, input.Password);
 
-                if (res.Succeeded) validUser = true;
-            }
-            else if (user.PasswordHash == null)
-            {
-                validUser = false;
-            }
-            else
-            {
-                var signed = await userManager.CheckPasswordAsync(user, input.Password);
-                if (signed == true) validUser = true;
-            }
-
-            if (!validUser)
-            {
-                return Results.Unauthorized();
-            }
-
-            var token = tokenService.GenerateAccessToken(user);
-            SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-
-            return Results.Ok(new
-            {
-                accessToken = token
-            });
+            if (!res.Succeeded) return Results.Problem("Something unexpected happened. Please try later or contact us to get help.");
         }
-        catch (Exception ex)
+        else if (user.PasswordHash == null)
         {
-            Console.WriteLine(ex.ToString());
-            return Results.Unauthorized();
+            return Results.Conflict("You should sign in with provider like: Google, ...");
         }
-    }
+        else
+        {
+            var signed = await userManager.CheckPasswordAsync(user, input.Password);
+            if (!signed) return Results.BadRequest("Password is incorrect.");
+        }
+
+        var token = tokenService.GenerateAccessToken(user);
+        SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
+
+        return Results.Ok(new
+        {
+            accessToken = token
+        });
+    });
 
     private static async Task<IResult> Google(GoogleInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
-    {
-        try
-        {
-            var validPayload = await GoogleJsonWebSignature.ValidateAsync(input.IdToken);
+     => await U.CatchUnexpected(async () =>
+     {
+         try
+         {
+             var validPayload = await GoogleJsonWebSignature.ValidateAsync(input.IdToken);
 
-            var user = await userManager.FindByEmailAsync(validPayload.Email);
-            if (user == null)
-            {
-                user = new()
-                {
-                    Email = validPayload.Email,
-                    UserName = validPayload.Email,
-                    EmailConfirmed = validPayload.EmailVerified,
-                };
+             var user = await userManager.FindByEmailAsync(validPayload.Email);
+             if (user == null)
+             {
+                 user = new()
+                 {
+                     Email = validPayload.Email,
+                     UserName = validPayload.Email,
+                     EmailConfirmed = validPayload.EmailVerified,
+                 };
 
-                var res = await userManager.CreateAsync(user);
+                 var res = await userManager.CreateAsync(user);
 
-                if (!res.Succeeded) return Results.Problem();
-            }
+                 if (!res.Succeeded) return Results.Problem();
+             }
 
-            var token = tokenService.GenerateAccessToken(user);
-            SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-            return Results.Ok(new
-            {
-                accessToken = token
-            });
-        }
-        catch
-        {
-            return Results.BadRequest();
-        }
-    }
+             var token = tokenService.GenerateAccessToken(user);
+             SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
+             return Results.Ok(new
+             {
+                 accessToken = token
+             });
+         }
+         catch
+         {
+             return Results.BadRequest();
+         }
+     });
 
     private static async Task<IResult> Refresh(HttpRequest request, TokenService tokenService, UserManager<User> userManager, HttpResponse response)
     {

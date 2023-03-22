@@ -2,6 +2,11 @@
 {
     public class U
     {
+        /// <summary>
+        /// Wrapper for api handlers to catch unexpected errors.
+        /// </summary>
+        /// <param name="handler">Api handler</param>
+        /// <returns>Results problem with "Something unexpected happened. Please try later or contact us to get help." message</returns>
         public static async Task<IResult> CatchUnexpected(Func<Task<IResult>> handler)
         {
             try
@@ -10,7 +15,7 @@
             }
             catch (Exception)
             {
-                return Results.Problem();
+                return Results.Problem("Something unexpected happened. Please try later or contact us to get help.");
             }
         }
     }
