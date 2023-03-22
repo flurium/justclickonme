@@ -8,5 +8,6 @@
         public const string NotFoundPage = "https://www.justclickon.me/not-found";
 
         public const string CredentialsCors = "CredentialsCors";
+        public const string SubscriptionClaimName = "subscriptionClaim";
     }
 }

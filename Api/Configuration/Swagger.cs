@@ -14,9 +14,9 @@ public static class Swagger
                 Version = "v1",
                 Contact = new OpenApiContact
                 {
-                    Name = "Flurium Team",
-                    Email = "fluriumteam@gmail.com",
-                    Url = new Uri("https://github.com/flurium"),
+                    Name = "Paragoda",
+                    Email = "romankoshchei@gmail.com",
+                    Url = new Uri("https://github.com/paragoda"),
                 },
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

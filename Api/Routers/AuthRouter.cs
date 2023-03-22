@@ -13,8 +13,7 @@ public static class AuthRouter
 {
     public static void MapAuth(this IEndpointRouteBuilder router)
     {
-        router.MapPost("/api/auth/login", Login);
-        router.MapPost("/api/auth/register", Register);
+        router.MapPost("/api/auth/password", Password);
         router.MapPost("/api/auth/google", Google);
         router.MapGet("/api/auth/refresh", Refresh);
 
@@ -32,46 +31,52 @@ public static class AuthRouter
         });
     }
 
-    private static async Task<IResult> Login(LoginInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
+    private static async Task<IResult> Password(PasswordInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
     {
-        var user = await userManager.FindByEmailAsync(input.Email);
-        // If password hash == null, that means user signed in with google, etc.
-        if (user == null || user.PasswordHash == null) return Results.Unauthorized();
-
-        var signed = await userManager.CheckPasswordAsync(user, input.Password);
-
-        if (signed == false) return Results.Unauthorized();
-
-        var token = tokenService.GenerateAccessToken(user);
-        SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-
-        return Results.Ok(new
+        try
         {
-            accessToken = token
-        });
-    }
+            var user = await userManager.FindByEmailAsync(input.Email);
+            var validUser = false;
 
-    private static async Task<IResult> Register(RegisterInput input, UserManager<User> userManager)
-    {
-        if (input.Password != input.ConfirmPassword) return Results.BadRequest("Confirm password doesn't match password");
+            if (user == null)
+            {
+                user = new()
+                {
+                    UserName = input.Email,
+                    Email = input.Email,
+                };
+                var res = await userManager.CreateAsync(user, input.Password);
 
-        var userExist = await userManager.FindByEmailAsync(input.Email);
-        if (userExist != null) return Results.Conflict("User already exists");
+                if (res.Succeeded) validUser = true;
+            }
+            else if (user.PasswordHash == null)
+            {
+                validUser = false;
+            }
+            else
+            {
+                var signed = await userManager.CheckPasswordAsync(user, input.Password);
+                if (signed == true) validUser = true;
+            }
 
-        User user = new()
+            if (!validUser)
+            {
+                return Results.Unauthorized();
+            }
+
+            var token = tokenService.GenerateAccessToken(user);
+            SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
+
+            return Results.Ok(new
+            {
+                accessToken = token
+            });
+        }
+        catch (Exception ex)
         {
-            UserName = input.Email,
-            Email = input.Email,
-        };
-
-        var res = await userManager.CreateAsync(user, input.Password);
-
-        if (!res.Succeeded) return Results.Problem(
-            statusCode: StatusCodes.Status500InternalServerError,
-            detail: "User creation failed! Please check user details and try again."
-        );
-
-        return Results.Ok();
+            Console.WriteLine(ex.ToString());
+            return Results.Unauthorized();
+        }
     }
 
     private static async Task<IResult> Google(GoogleInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)

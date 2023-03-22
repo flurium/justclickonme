@@ -4,6 +4,7 @@ using Api.Routers;
 using Api.Services;
 using Data.Context;
 using Data.Models;
+using Data.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,22 +60,14 @@ builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<Just
 builder.Services.AddJwtAuthentication(secrets);
 builder.Services.AddAuthorization();
 
-builder.Services.AddTransient<TokenService>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<SubscriptionService>();
 
 builder.Services.AddCors(options =>
 {
-    //options.AddDefaultPolicy(policy =>
-    //{
-    //    policy
-    //        .AllowAnyOrigin()
-    //        .AllowAnyHeader()
-    //        .WithMethods("GET", "POST", "DELETE", "PUT");
-    //});
-
     options.AddDefaultPolicy(policy =>
     {
         policy
-        .WithOrigins("https://localhost:44350/")
             .SetIsOriginAllowed(origin => true)
             .AllowCredentials()
             .AllowAnyMethod()

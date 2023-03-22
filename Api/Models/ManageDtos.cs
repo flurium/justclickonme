@@ -2,11 +2,29 @@
 
 namespace Api.Models;
 
+public record EditLinkInput(
+
+    [Required(ErrorMessage = "Slug is required")]
+    string Slug,
+
+    string? NewSlug,
+
+    string? Destination,
+
+    string? Title,
+
+    string? Descripiton
+);
+
 internal record LinkOutput(
 
     string Slug,
 
-    string Destination
+    string Destination,
+
+    string Title,
+    string Descripiton,
+    DateTime CreatedDateTime
 );
 
 public record CreateLinkInput(
@@ -15,5 +33,9 @@ public record CreateLinkInput(
     string Slug,
 
     [Required(ErrorMessage = "Destination is required to redirect somewhere")]
-    string Destination
+    string Destination,
+
+    string Title,
+
+    string Description
 );
