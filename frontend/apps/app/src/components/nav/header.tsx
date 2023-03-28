@@ -2,6 +2,8 @@ import { routes } from "../../shared/utils/helpers"
 import Image from "next/image"
 import Link from "next/link"
 import logo from "../../../public/logo.png"
+import { MenuIcon } from "../../shared/ui/icons"
+import { useState } from "react"
 
 const NavbarLinks = () => {
   return (
@@ -14,44 +16,46 @@ const NavbarLinks = () => {
 }
 
 export const Navbar = () => {
+  const [showMenu, setShowMenu] = useState(false)
+
+  const toggleMenu = () => setShowMenu(!showMenu)
+
   return (
-    <nav className="flex justify-between items-center border-b mb-2 py-3">
-      <div>
-        {/* <div className="dropdown">
-          <label className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
-              />
-            </svg>
-          </label>
-          <ul className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+    <header>
+      <nav className="mb-2">
+        <div className="flex justify-between items-center border-b py-3">
+          <div className="flex gap-5">
+            <div className="sm:hidden">
+              <button onClick={toggleMenu}>
+                <MenuIcon className="h-6 w-6" />
+              </button>
+
+              {/* <ul className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
             <NavbarLinks />
-          </ul>
-        </div> */}
-        <Link href="/">
-          <Image src={logo} alt="JustClickOnMe" className="h-6 w-auto mx-2" quality={100} />
-        </Link>
-      </div>
-      <div className="flex gap-8">
-        <NavbarLinks />
-      </div>
-      <Link
-        className=" py-2 px-6 border-blue-100 text-blue-600 hover:bg-blue-100 border-2"
-        href={routes.manage}
-      >
-        Get Started - free
-      </Link>
-    </nav>
+          </ul> */}
+            </div>
+            <Link href="/">
+              <Image src={logo} alt="JustClickOnMe" className="h-6 w-auto mx-2" quality={100} />
+            </Link>
+          </div>
+          <div className="hidden sm:flex sm:gap-8">
+            <NavbarLinks />
+          </div>
+          <Link
+            className=" py-2 px-6 border-blue-100 text-blue-600 hover:bg-blue-100 border-2"
+            href={routes.manage}
+          >
+            Get Started - free
+          </Link>
+        </div>
+
+        {showMenu && (
+          <div className="sm:hidden py-5 justify-center w-full border-b flex gap-5">
+            <NavbarLinks />
+          </div>
+        )}
+      </nav>
+    </header>
   )
 }
 

@@ -13,7 +13,7 @@ export const routes = {
   policy: "/legal/privacy-policy",
 
   // my third-party
-  github: "https://github.com/paragoda",
+  github: "https://github.com/paragoda/justclickonme",
   discord: "https://discord.gg/8HnMGdfA",
 
   // third-party

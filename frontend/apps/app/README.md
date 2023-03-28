@@ -1,9 +1,3 @@
-## Stack
-
-- Next js
-- Typescript
-- Asp Net Core
-
 ## Getting Started
 
 Install dependencies:
