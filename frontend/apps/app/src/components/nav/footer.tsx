@@ -31,8 +31,12 @@ export const NavFooter = () => {
       <div className="flex gap-5">
         <Link href={routes.policy}>Policy</Link>
         <Link href={routes.terms}>Terms</Link>
-        <Link href={routes.github}>GitHub</Link>
-        <Link href={routes.discord}>Discord</Link>
+        <a href={routes.github} target="_blank">
+          GitHub
+        </a>
+        <a href={routes.discord} target="_blank">
+          Discord
+        </a>
       </div>
     </footer>
   )
