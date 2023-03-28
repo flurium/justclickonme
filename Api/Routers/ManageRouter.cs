@@ -21,11 +21,8 @@ public static class ManageRouter
         router.MapPut("/api/links", Update).RequireAuthorization();
     }
 
-    private static async Task<IResult> All(ClaimsPrincipal user, JustClickOnMeDbContext db, HttpRequest req) => await U.CatchUnexpected(async () =>
+    private static async Task<IResult> All(ClaimsPrincipal claims, JustClickOnMeDbContext db, HttpRequest req) => await U.Authorized(claims, async (uid) =>
     {
-        var uid = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.Unauthorized();
-
         var links = await db.Links
             .Where(l => l.UserId == uid)
             .Select(l => new LinkOutput(l.Slug, l.Destination, l.Title, l.Description, l.CreatedDateTime))
@@ -35,22 +32,16 @@ public static class ManageRouter
     });
 
     // MAYBE not nessasary
-    public static async Task<IResult> One(string slug, JustClickOnMeDbContext db, ClaimsPrincipal user) => await U.CatchUnexpected(async () =>
+    public static async Task<IResult> One(string slug, JustClickOnMeDbContext db, ClaimsPrincipal claims) => await U.Authorized(claims, async (uid) =>
     {
-        var uid = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.Unauthorized();
-
         var link = await db.Links
             .FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == slug);
 
         return Results.Ok(link);
     });
 
-    private static async Task<IResult> Delete(string slug, JustClickOnMeDbContext db, ClaimsPrincipal user) => await U.CatchUnexpected(async () =>
+    private static async Task<IResult> Delete(string slug, JustClickOnMeDbContext db, ClaimsPrincipal claims) => await U.Authorized(claims, async (uid) =>
     {
-        var uid = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.Unauthorized();
-
         var link = await db.Links.FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == slug);
         if (link == null) return Results.NotFound();
 
@@ -60,11 +51,8 @@ public static class ManageRouter
         return Results.Ok();
     });
 
-    private static async Task<IResult> Update(EditLinkInput input, JustClickOnMeDbContext db, ClaimsPrincipal user) => await U.CatchUnexpected(async () =>
+    private static async Task<IResult> Update(EditLinkInput input, JustClickOnMeDbContext db, ClaimsPrincipal claims) => await U.Authorized(claims, async (uid) =>
     {
-        var uid = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.Unauthorized();
-
         var link = await db.Links.FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == input.Slug);
         if (link == null) return Results.NotFound(input.Slug);
 
@@ -80,11 +68,8 @@ public static class ManageRouter
 
     // A lot of SHIT
     private static async Task<IResult> Create(CreateLinkInput input, SubscriptionService subscriptionService,
-    ClaimsPrincipal user, JustClickOnMeDbContext db) => await U.CatchUnexpected(async () =>
+    ClaimsPrincipal claims, JustClickOnMeDbContext db) => await U.Authorized(claims, async (uid) =>
     {
-        var uid = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.Unauthorized();
-
         // TODO: update the usage
 
         var isAllowed = await subscriptionService.IsLimitAllow(uid);

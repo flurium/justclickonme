@@ -1,4 +1,7 @@
-﻿namespace Api.Utilities
+﻿using Data.Models;
+using System.Security.Claims;
+
+namespace Api.Utilities
 {
     public class U
     {
@@ -12,6 +15,22 @@
             try
             {
                 return await handler();
+            }
+            catch (Exception)
+            {
+                return Results.Problem("Something unexpected happened. Please try later or contact us to get help.");
+            }
+        }
+
+        public static async Task<IResult> Authorized(ClaimsPrincipal claims, Func<string, Task<IResult>> handler)
+        {
+            try
+            {
+                var uid = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (uid == null) return Results.Unauthorized();
+
+                return await handler(uid);
             }
             catch (Exception)
             {
