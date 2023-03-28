@@ -6,11 +6,12 @@ Repo for api of just click on me.
 
 ### Stack:
 
+- Next js
 - C#
 - Asp Net Core
 - Identity
 - Fly.io
-- CockroachDb (Postgres like)
+- CockroachDb
 
 / <- redirect to frontend
 /[path] <- redirects  
