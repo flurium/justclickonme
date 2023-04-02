@@ -21,7 +21,7 @@ const Privacy = () => {
         </h1>
 
         <div className="max-w-3xl m-auto">
-          <p className="mb-10 text-center">
+          <p className="mb-10 text-center ">
             We don't have a return policy, which means you can't get money back.
           </p>
         </div>

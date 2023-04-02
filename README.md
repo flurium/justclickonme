@@ -1,18 +1,14 @@
 ![justclickonme-logo](./assets/readme-header.png)
 
-# Just Click On Me
+# JustClickOnMe
 
-Repo for api of just click on me.
+## Stack
 
-### Stack:
-
+- Next js
+- Typescript
 - Next js
 - C#
 - Asp Net Core
-- Identity
+- EF core
 - Fly.io
 - CockroachDb
-
-/ <- redirect to frontend
-/[path] <- redirects  
-/api <- management api

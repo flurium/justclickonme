@@ -15,3 +15,5 @@ internal record GoogleInput(
     [Required(ErrorMessage = "IdToken is required")]
     string IdToken
 );
+
+public record AccessTokenDto(string AccessToken);

@@ -1,7 +1,6 @@
 ﻿using Data.Context;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Concurrent;
 
 namespace Api.Services
 {

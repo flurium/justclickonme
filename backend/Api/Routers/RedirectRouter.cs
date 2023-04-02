@@ -12,12 +12,14 @@ public static class RedirectRouter
 
     public static async Task<IResult> Redirect(string slug, JustClickOnMeDbContext db)
     {
-        var link = await db.Links.FirstOrDefaultAsync(l => l.Slug == slug);
+        var link = await db.Links
+            .Where(l => l.Slug == slug)
+            .Select(l => l.Destination)
+            .FirstOrDefaultAsync();
 
-        if (link == null) return Results.Redirect("https://feature-sliced.design/"); //(Constants.NotFoundPage);
+        // it's accually hack to get users if page not found, but may be it's bad ux
+        if (link == null) return Results.Redirect("https://app.justclickon.me");
 
-        var url = link.Destination;
-
-        return Results.Redirect(url);
+        return Results.Redirect(link);
     }
 }

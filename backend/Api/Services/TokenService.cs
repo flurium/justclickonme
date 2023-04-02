@@ -18,13 +18,12 @@ public class TokenService
         this.secrets = secrets.Value;
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(string uid)
     {
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.NameIdentifier, uid)
         };
 
         var expiration = DateTime.UtcNow.AddMinutes(30);
@@ -46,11 +45,15 @@ public class TokenService
         return GenerateToken(claims, expiration, secrets.JwtRefreshSecret);
     }
 
-    public async Task<TokenValidationResult> VerifyRefreshToken(string token)
+    public async Task<TokenValidationResult> VerifyRefreshToken(string token) => await VerifyToken(token, secrets.JwtRefreshSecret);
+
+    public async Task<TokenValidationResult> VerifyAccessToken(string token) => await VerifyToken(token, secrets.JwtAccessSecret);
+
+    private async Task<TokenValidationResult> VerifyToken(string token, string secret)
     {
         var handler = new JwtSecurityTokenHandler();
 
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secrets.JwtRefreshSecret));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
         var validations = new TokenValidationParameters
         {
@@ -59,6 +62,7 @@ public class TokenService
             ValidateIssuer = true,
             ValidateIssuerSigningKey = true,
             ValidateAudience = false,
+            ValidateLifetime = true,
         };
 
         return await handler.ValidateTokenAsync(token, validations);

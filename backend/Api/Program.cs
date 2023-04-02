@@ -4,7 +4,6 @@ using Api.Routers;
 using Api.Services;
 using Data.Context;
 using Data.Models;
-using Data.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,7 +56,6 @@ builder.Services.AddDbContext<JustClickOnMeDbContext>(options => options.UseNpgs
 
 // Auth
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<JustClickOnMeDbContext>().AddDefaultTokenProviders();
-builder.Services.AddJwtAuthentication(secrets);
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<TokenService>();
@@ -68,7 +66,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .SetIsOriginAllowed(origin => true)
+            .SetIsOriginAllowed(origin => true) // hack
             .AllowCredentials()
             .AllowAnyMethod()
             .AllowAnyHeader();

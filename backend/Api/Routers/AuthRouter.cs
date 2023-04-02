@@ -1,12 +1,11 @@
 ﻿using Api.Configuration;
 using Api.Models;
 using Api.Services;
-using Api.Utilities;
+using Api.Ulib;
 using Data.Context;
 using Data.Models;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 
 namespace Api.Routers;
 
@@ -16,7 +15,7 @@ public static class AuthRouter
     {
         router.MapPost("/api/auth/password", Password);
         router.MapPost("/api/auth/google", Google);
-        router.MapGet("/api/auth/refresh", Refresh);
+        //router.MapGet("/api/auth/refresh", Refresh);
 
         // now for testing
         router.MapPost("/api/auth/revoke", Revoke);
@@ -33,7 +32,7 @@ public static class AuthRouter
     }
 
     private static async Task<IResult> Password(PasswordInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
-        => await U.CatchUnexpected(async () =>
+    => await U.CatchUnexpected(async () =>
     {
         var user = await userManager.FindByEmailAsync(input.Email);
 
@@ -46,62 +45,49 @@ public static class AuthRouter
             };
             var res = await userManager.CreateAsync(user, input.Password);
 
-            if (!res.Succeeded) return Results.Problem("Something unexpected happened. Please try later or contact us to get help.");
+            if (!res.Succeeded) return new(500, "Sorry! We can't create account for you. Please try later or contact us to get help.");
         }
         else if (user.PasswordHash == null)
         {
-            return Results.Conflict("You should sign in with provider like: Google, ...");
+            return new(409, "You should sign in with provider like: Google, ...");
         }
         else
         {
             var signed = await userManager.CheckPasswordAsync(user, input.Password);
-            if (!signed) return Results.BadRequest("Password is incorrect.");
+            if (!signed) return new(400, "Password is incorrect.");
         }
 
-        var token = tokenService.GenerateAccessToken(user);
+        var token = tokenService.GenerateAccessToken(user.Id);
         SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
 
-        return Results.Ok(new
-        {
-            accessToken = token
-        });
+        return U.Authorized(token);
     });
 
     private static async Task<IResult> Google(GoogleInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
-     => await U.CatchUnexpected(async () =>
-     {
-         try
-         {
-             var validPayload = await GoogleJsonWebSignature.ValidateAsync(input.IdToken);
+    => await U.CatchUnexpected(async () =>
+    {
+        var validPayload = await GoogleJsonWebSignature.ValidateAsync(input.IdToken);
 
-             var user = await userManager.FindByEmailAsync(validPayload.Email);
-             if (user == null)
-             {
-                 user = new()
-                 {
-                     Email = validPayload.Email,
-                     UserName = validPayload.Email,
-                     EmailConfirmed = validPayload.EmailVerified,
-                 };
+        var user = await userManager.FindByEmailAsync(validPayload.Email);
+        if (user == null)
+        {
+            user = new()
+            {
+                Email = validPayload.Email,
+                UserName = validPayload.Email,
+                EmailConfirmed = validPayload.EmailVerified,
+            };
 
-                 var res = await userManager.CreateAsync(user);
+            var res = await userManager.CreateAsync(user);
+            if (!res.Succeeded) return new(500, "Sorry! We can't create account for you.");
+        }
 
-                 if (!res.Succeeded) return Results.Problem();
-             }
+        var token = tokenService.GenerateAccessToken(user.Id);
+        SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
+        return U.Authorized(token);
+    });
 
-             var token = tokenService.GenerateAccessToken(user);
-             SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-             return Results.Ok(new
-             {
-                 accessToken = token
-             });
-         }
-         catch
-         {
-             return Results.BadRequest();
-         }
-     });
-
+    /* Deprecated
     private static async Task<IResult> Refresh(HttpRequest request, TokenService tokenService, UserManager<User> userManager, HttpResponse response)
     {
         try
@@ -125,7 +111,7 @@ public static class AuthRouter
 
             if (user.RefreshTokenVersion != refreshTokenVersion) return Results.Unauthorized();
 
-            var accessToken = tokenService.GenerateAccessToken(user);
+            var accessToken = tokenService.GenerateAccessToken(user.Id);
             SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
             return Results.Ok(new
             {
@@ -137,18 +123,17 @@ public static class AuthRouter
             return Results.BadRequest();
         }
     }
+    */
 
-    private static async Task<IResult> Revoke(ClaimsPrincipal claims, JustClickOnMeDbContext db)
+    private static async Task<IResult> Revoke(JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    => await U.Authorized(req, tokenizer, db, async uid =>
     {
-        var uid = claims.FindFirstValue(claimType: ClaimTypes.NameIdentifier);
-        if (uid == null) return Results.NotFound();
-
         var user = db.Users.FirstOrDefault(u => u.Id == uid);
-        if (user == null) return Results.NotFound();
+        if (user == null) return new(404, "User isn't found");
 
         user.RefreshTokenVersion += 1;
         await db.SaveChangesAsync();
 
-        return Results.Ok();
-    }
+        return U.Success();
+    });
 }
