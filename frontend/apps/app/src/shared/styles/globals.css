@@ -8,10 +8,53 @@ textarea:focus {
 }
 
 html,
+body,
+#__next {
+  @apply min-h-screen;
+}
+
+html {
+  @apply bg-gradient-to-b from-[#5E8BAC] via-[#7968A3] to-[#9A5E86] -z-10 text-white;
+  background-repeat: no-repeat;
+  font-family: sans-serif;
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply h-full font-sans;
+  background-image: url(/noise.png);
+  background-size: repeat;
 }
 
 #__next {
-  @apply px-5 max-w-[82rem] mx-auto h-full;
+  @apply px-5 max-w-[82rem] mx-auto;
+}
+
+.noise {
+  background-image: url(/noise.png);
+  background-size: repeat;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.animate-fade-out {
+  animation: fade-out;
 }
