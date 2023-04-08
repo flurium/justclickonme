@@ -2,16 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
-input:focus,
-textarea:focus {
-  @apply focus:outline-0;
+*,
+*:focus,
+*:active,
+*:hover {
+  outline: 0;
 }
 
-html,
+html {
+  min-height: 100vh;
+}
+body,
+#__next {
+  min-height: 100%;
+}
+
+html {
+  @apply bg-gradient-to-b from-[#5E8BAC] via-[#7968A3] to-[#9A5E86] -z-10 text-white;
+  background-repeat: no-repeat;
+  font-family: sans-serif;
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply h-full font-sans;
+  background-image: url(/noise.png);
+  background-size: repeat;
 }
 
 #__next {
-  @apply px-5 max-w-[82rem] mx-auto h-full;
+  @apply px-5 max-w-[82rem] mx-auto;
+}
+
+/* 
+  magic to make inputs transparent after autofill
+  worst thing I have ever do
+*/
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:autofill,
+textarea:autofill:hover,
+textarea:autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:autofill,
+select:autofill:hover,
+select:autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  filter: none;
+  -webkit-animation: autofill 0s forwards !important;
+  animation: autofill 0s forwards !important;
+  transition: background-color 100000s ease-in-out 0s;
+  -webkit-text-fill-color: white !important;
+  background: transparent !important;
+}
+
+@keyframes autofill {
+  100% {
+    background: transparent !important;
+    color: inherit;
+  }
+}
+
+@-webkit-keyframes autofill {
+  100% {
+    background: transparent !important;
+    color: inherit;
+  }
 }

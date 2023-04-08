@@ -75,12 +75,12 @@ export const LinkIcon = ({ className }: IconProps) => (
 
 export const CheckIcon = ({ className }: IconProps) => (
   <IconBase className={className}>
-    <path d="M1 7L5.5 11.5L14 3" stroke="#21a500" strokeLinecap="square" />
+    <path d="M1 7L5.5 11.5L14 3" stroke="#ED5576" strokeLinecap="square" />
   </IconBase>
 )
 
 export const MenuIcon = ({ className }: IconProps) => (
   <IconBase className={className}>
-    <path d="M0 3.5H15M0 11.5H15M0 7.5H15" stroke="black" />
+    <path d="M0 3.5H15M0 11.5H15M0 7.5H15" stroke="white" />
   </IconBase>
 )

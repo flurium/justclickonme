@@ -117,7 +117,7 @@ public static class U
 
     public static UResult Authorized(string accessToken) => new(200, accessToken: accessToken);
 
-    public static UResult<T> Data<T>(T data) where T : class => new(200, data: data);
+    public static UResult<T> Data<T>(T data) where T : class => new(data);
 
     public static UResult Success() => new(200);
 }

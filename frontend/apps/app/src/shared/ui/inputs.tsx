@@ -12,12 +12,12 @@ type InputProps = {
 export const Input = ({ label, className, placeholder, value, type, setValue }: InputProps) => {
   return (
     <div className={className}>
-      <label>{label}</label>
+      <label className="ml-2 font-semibold">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="mt-2 border py-3 px-6 block w-full focus:border-gray-300"
+        className="mt-1 border-2 border-white rounded-lg py-3 px-6 block w-full bg-transparent text-white"
         placeholder={placeholder}
       />
     </div>
