@@ -1,5 +1,6 @@
-import { NextPage } from "next"
+import { GetServerSideProps, NextPage } from "next"
 import Head from "next/head"
+import { routes } from "../shared/utils/helpers"
 
 const SettingPage: NextPage = () => {
   return (
@@ -15,3 +16,11 @@ const SettingPage: NextPage = () => {
 }
 
 export default SettingPage
+
+export const getServerSideProps: GetServerSideProps<any> = async (ctx) => ({
+  props: {},
+  redirect: {
+    destination: routes.auth,
+    permanent: false,
+  },
+})

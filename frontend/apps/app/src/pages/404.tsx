@@ -3,17 +3,14 @@ import { NextPage } from "next"
 import Head from "next/head"
 import Link from "next/link"
 import { routes } from "../shared/utils/helpers"
+import { Page } from "../components/Page"
 
 const Error404: NextPage = () => {
   return (
-    <>
-      <Head>
-        <title>Page wasn&apos;t found | Just Click On Me</title>
-        <meta name="description" content="Shorten and customize your URLs with Just Click On Me" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+    <Page
+      title="Page wasn't found"
+      description="Shorten and customize your URLs with JustClickOnMe"
+    >
       <Navbar />
 
       <main>
@@ -48,7 +45,7 @@ const Error404: NextPage = () => {
         <GetStartedFooter />
         <NavFooter />
       </main>
-    </>
+    </Page>
   )
 }
 

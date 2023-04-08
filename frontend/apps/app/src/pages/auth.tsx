@@ -1,5 +1,6 @@
+import { Page } from "../components/Page"
 import { GoogleBtn } from "../components/integrations/GoogleBtn"
-import { Navbar } from "../components/nav"
+import { NavFooter, Navbar } from "../components/nav"
 import { passwordLogin } from "../shared/api/auth"
 import { Input } from "../shared/ui/inputs"
 import { NextPage } from "next"
@@ -18,6 +19,7 @@ const Auth: NextPage = () => {
   const loginWithPassword: MouseEventHandler = async (e) => {
     e.preventDefault()
     const res = await passwordLogin(email, password)
+    console.log(res)
     if (res == "success") {
       push("/manage")
     } else {
@@ -25,20 +27,20 @@ const Auth: NextPage = () => {
   }
 
   return (
-    <>
-      <Head>
-        <title>Shorten and customize your URLs | Just Click On Me</title>
-        <meta name="description" content="Shorten and customize your URLs with Just Click On Me" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+    <Page title="Get started" description="Get started: JustClickOnMe">
       <Navbar />
 
-      <main>
-        <h1 className="text-center text-5xl lg:text-7xl font-bold mt-12 mb-8 mx-6">Get Started</h1>
+      <main className="h-[75vh] gap-10 flex flex-col justify-center items-center">
+        <h1 className="text-center text-5xl lg:text-7xl font-bold">Get Started</h1>
+        <h2 className="max-w-xl text-center">
+          We are currently in validation mode. So you will not be able to use JustClickOnMe right
+          now. But we will send you newsletters about our latest updates. Stay in touch!
+        </h2>
 
-        <form className="flex flex-col items-center gap-4 max-w-xs m-auto">
+        <form className="flex flex-col items-center gap-4 max-w-sm w-full">
+          {/* 
+          Google authenitification  
+
           <div className="flex text-xl gap-3  items-center">
             <GoogleBtn user={user} />
             Google
@@ -49,6 +51,8 @@ const Auth: NextPage = () => {
             <span className="mb-1">or</span>
             <hr className="flex-1" />
           </div>
+
+          */}
 
           <Input
             type="email"
@@ -67,15 +71,12 @@ const Auth: NextPage = () => {
             label="Password"
           />
 
-          <button
-            className=" py-3 px-6 border-blue-100 text-blue-600 hover:bg-blue-100 border  w-full"
-            onClick={loginWithPassword}
-          >
-            Start
+          <button className="rounded-lg py-3 px-6 bg-slate-900 w-full" onClick={loginWithPassword}>
+            START
           </button>
         </form>
       </main>
-    </>
+    </Page>
   )
 }
 export default Auth

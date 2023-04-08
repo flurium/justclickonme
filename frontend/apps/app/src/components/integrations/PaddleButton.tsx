@@ -5,22 +5,22 @@ declare global {
   var Paddle: any
 }
 
-export const PaddleLoader = () => {
-  const paddleLoad = () => {
-    Paddle.Setup({
-      vendor: Number(env.paddleVendorId),
-    })
-  }
+// export const PaddleLoader = () => {
+//   const paddleLoad = () => {
+//     Paddle.Setup({
+//       vendor: Number(env.paddleVendorId),
+//     })
+//   }
 
-  return <Script src="https://cdn.paddle.com/paddle/paddle.js" onLoad={paddleLoad} />
-}
+//   return <Script src="https://cdn.paddle.com/paddle/paddle.js" onLoad={paddleLoad} />
+// }
 
-export const PaddleButton = () => {
-  const paddlePay = () => {
-    Paddle.Checkout.open({
-      product: "...",
-    })
-  }
+// export const PaddleButton = () => {
+//   const paddlePay = () => {
+//     Paddle.Checkout.open({
+//       product: "...",
+//     })
+//   }
 
-  return <button onClick={paddlePay}>Pay</button>
-}
+//   return <button onClick={paddlePay}>Pay</button>
+// }

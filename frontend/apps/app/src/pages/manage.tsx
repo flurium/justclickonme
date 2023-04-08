@@ -2,7 +2,7 @@ import { GetServerSideProps, NextPage } from "next"
 import Head from "next/head"
 import { DocumentsIcon, EditIcon } from "../shared/ui/icons"
 import { LinkList } from "../components/manage/LinkList"
-import { ManageNavbar } from "../components/nav"
+import { ManageNavbar, Navbar } from "../components/nav"
 import { Fragment, useEffect, useState } from "react"
 import { LinkType } from "../shared/utils/types"
 import { constants, routes } from "../shared/utils/helpers"
@@ -12,6 +12,7 @@ import { createLink, getLinks } from "../shared/api/manage"
 import { AccessToken } from "../shared/api/types"
 import { LinkForm, LinkInfo } from "../features/manage"
 import { getAccessToken, setAccessToken } from "../shared/api/base"
+import { Page } from "../components/Page"
 
 const ManagePage: NextPage<AccessToken> = ({ accessToken }) => {
   /*
@@ -178,11 +179,28 @@ const ManagePage: NextPage<AccessToken> = ({ accessToken }) => {
   )
 }
 
-export default ManagePage
+const ManagePageValidationMode: NextPage = () => {
+  return (
+    <Page title="Manage links" description="Manage links in JustClickOnMe">
+      <Navbar />
+
+      <main className="h-[75vh] gap-10 flex flex-col justify-center items-center">
+        <h1 className="text-center text-5xl lg:text-7xl font-bold">Thanks for trust!</h1>
+        <h2 className="max-w-xl text-center">
+          We will send you letter when JustClickOnMe will be available for usage. And you wil get a
+          secret gift as one of our first users.
+        </h2>
+      </main>
+    </Page>
+  )
+}
+
+export default ManagePageValidationMode
 
 export const getServerSideProps: GetServerSideProps<any> = async (ctx) => {
   // auth
   const refreshCookie = ctx.req.cookies[constants.refreshTokenCookie]
+  console.log(ctx.req.cookies)
 
   const authRedirect = {
     props: {},
@@ -194,15 +212,15 @@ export const getServerSideProps: GetServerSideProps<any> = async (ctx) => {
 
   if (!refreshCookie) return authRedirect
 
-  const [links, res, status] = await getLinks("/", refreshCookie)
+  // const [links, res, status] = await getLinks("/", refreshCookie)
 
-  if (status == "error" || status == "fail") return authRedirect
+  // if (status == "error" || status == "fail") return authRedirect
 
-  const accessToken = getAccessToken()
+  // const accessToken = getAccessToken()
 
   return {
     props: {
-      accessToken,
+      // accessToken,
     },
   }
 }

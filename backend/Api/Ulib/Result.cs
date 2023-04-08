@@ -30,14 +30,14 @@ public class UResult<T> : UResult where T : class
 {
     public T? Data { get; }
 
-    public UResult(int code, T? data = null, UError? error = null, string? accessToken = null) : base(code, error, accessToken)
-    {
-        Data = data;
-    }
-
     public UResult(int code, UError error) : base(code, error)
     {
     }
 
-    public static implicit operator UResult<T>(T? data) => new(200, data: data);
+    public UResult(T data) : base(200)
+    {
+        Data = data;
+    }
+
+    public static implicit operator UResult<T>(T data) => new(data);
 }

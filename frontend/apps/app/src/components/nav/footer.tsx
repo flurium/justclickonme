@@ -32,10 +32,10 @@ export const NavFooter = () => {
       <div className="flex gap-5">
         <Link href={routes.policy}>Policy</Link>
         <Link href={routes.terms}>Terms</Link>
-        <a href={routes.github} target="_blank">
+        <a href={routes.github} target="_blank" rel="noreferrer">
           GitHub
         </a>
-        <a href={routes.discord} target="_blank">
+        <a href={routes.discord} target="_blank" rel="noreferrer">
           Discord
         </a>
       </div>

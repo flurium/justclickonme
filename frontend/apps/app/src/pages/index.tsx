@@ -5,25 +5,19 @@ import { constants, routes } from "../shared/utils/helpers"
 import { GetServerSideProps } from "next"
 import Head from "next/head"
 import { Pricing } from "../features/landing/pricing"
+import { Page } from "../components/Page"
 
 export default function Home() {
   return (
-    <div className="h-full">
-      <Head>
-        <title>Attention is driven element of new generation economy | Just Click On Me</title>
-        <meta
-          name="description"
-          content="Attention is driven element of new generation economy. Shorten and customize your links with JustClickOnMe. An Open Source alternative to Bitly."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+    <Page
+      title="Attention is driven element of new generation economy"
+      description="Attention is driven element of new generation economy. Shorten and customize your links with JustClickOnMe. An Open Source alternative to Bitly."
+    >
       <Navbar />
 
       <main>
         <div className="h-[75vh] flex flex-col justify-center items-center text-center">
-          <h1 className="text-4xl lg:text-7xl  font-bold max-w-6xl">
+          <h1 className="text-4xl lg:text-7xl font-bold max-w-6xl">
             Attention is driven element of new generation economy
           </h1>
           <div className="flex border-2 border-white rounded-[0.625rem] items-center pl-6 pr-2 w-full max-w-2xl mt-10">
@@ -55,7 +49,7 @@ export default function Home() {
         <GetStartedFooter />
         <NavFooter />
       </main>
-    </div>
+    </Page>
   )
 }
 

@@ -47,7 +47,7 @@ public static class ManageRouter
         var link = await db.Links
             .FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == slug);
 
-        if (link == null) return new(404, "Link isn't found");
+        if (link == null) return U.Error<Link>(404, "Link isn't found");
         return link;
     });
 
@@ -98,7 +98,8 @@ public static class ManageRouter
     ///     }
     ///
     /// </remarks>
-    private static async Task<IResult> Update(EditLinkInput input, JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer) => await Ulib.U.Authorized<Link>(req, tokenizer, db, async (uid) =>
+    private static async Task<IResult> Update(EditLinkInput input, JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    => await U.Authorized<Link>(req, tokenizer, db, async (uid) =>
     {
         var link = await db.Links.FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == input.Slug);
         if (link == null) return new(404, "Link isn't found");
@@ -144,7 +145,7 @@ public static class ManageRouter
         // TODO: update the usage
 
         var isAllowed = await subscriptionService.IsLimitAllow(uid);
-        if (!isAllowed) return new(402, error: "You reached limit of your subscription");
+        if (!isAllowed) return new(402, "You reached limit of your subscription");
 
         var slug = input.Slug.Trim('/').Replace(" ", "-");
         var scopeEndIndex = slug.IndexOf("/");
@@ -152,10 +153,10 @@ public static class ManageRouter
         {
             // TOP LEVEL link
             var owned = await db.Links.AnyAsync(l => l.Slug == slug);
-            if (owned) return new(409, error: "Slug is taken");
+            if (owned) return new(409, "Slug is taken");
             var created = await db.Links.AddAsync(new(slug, input.Destination, uid, input.Title, input.Description));
             await db.SaveChangesAsync();
-            return new(200, data: created.Entity);
+            return created.Entity;
         }
 
         var scope = slug[..scopeEndIndex];
@@ -166,7 +167,7 @@ public static class ManageRouter
             if (withSameScope.UserId != uid) return new(409, error: "Scope is taken");
 
             var exist = await db.Links.AnyAsync(l => l.Slug == slug);
-            if (exist) return new(409, error: "Slug is taken");
+            if (exist) return new(409, "Slug is taken");
         }
 
         try

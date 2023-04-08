@@ -1,7 +1,7 @@
 import { constants } from "../utils/helpers"
 import jwtDecode from "jwt-decode"
 import { AccessToken } from "./types"
-const domain = "http://localhost:5125"
+const domain = "https://justclickon.me"
 
 const url = (path: string) => `${domain}${path}`
 

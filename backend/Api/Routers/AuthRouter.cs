@@ -45,16 +45,16 @@ public static class AuthRouter
             };
             var res = await userManager.CreateAsync(user, input.Password);
 
-            if (!res.Succeeded) return new(500, "Sorry! We can't create account for you. Please try later or contact us to get help.");
+            if (!res.Succeeded) return U.Error(500, "Sorry! We can't create account for you. Please try later or contact us to get help.");
         }
         else if (user.PasswordHash == null)
         {
-            return new(409, "You should sign in with provider like: Google, ...");
+            return U.Error(409, "You should sign in with provider like: Google, ...");
         }
         else
         {
             var signed = await userManager.CheckPasswordAsync(user, input.Password);
-            if (!signed) return new(400, "Password is incorrect.");
+            if (!signed) return U.Error(400, "Password is incorrect.");
         }
 
         var token = tokenService.GenerateAccessToken(user.Id);
@@ -79,7 +79,7 @@ public static class AuthRouter
             };
 
             var res = await userManager.CreateAsync(user);
-            if (!res.Succeeded) return new(500, "Sorry! We can't create account for you.");
+            if (!res.Succeeded) return U.Error(500, "Sorry! We can't create account for you.");
         }
 
         var token = tokenService.GenerateAccessToken(user.Id);
