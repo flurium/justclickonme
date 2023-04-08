@@ -54,17 +54,17 @@ export default function Home() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const refreshCookie = ctx.req.cookies[constants.refreshTokenCookie]
+  // const refreshCookie = ctx.req.cookies[constants.refreshTokenCookie]
 
-  if (refreshCookie) {
-    return {
-      props: {},
-      redirect: {
-        destination: routes.manage,
-        permanent: false,
-      },
-    }
-  }
+  // if (refreshCookie) {
+  //   return {
+  //     props: {},
+  //     redirect: {
+  //       destination: routes.manage,
+  //       permanent: false,
+  //     },
+  //   }
+  // }
 
   return {
     props: {},
