@@ -23,6 +23,7 @@ const Auth: NextPage = () => {
     if (res == "success") {
       push("/manage")
     } else {
+      alert("sorry can't login")
     }
   }
 
