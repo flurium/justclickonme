@@ -27,7 +27,8 @@ public static class AuthRouter
         {
             HttpOnly = true,
             SameSite = SameSiteMode.None,
-            Secure = true
+            Secure = true,
+            Domain = ".justclickon.me"
         });
     }
 
