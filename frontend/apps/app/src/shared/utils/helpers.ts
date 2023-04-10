@@ -14,6 +14,7 @@ export const routes = {
   // my third-party
   github: "https://github.com/paragoda/justclickonme",
   discord: "https://discord.gg/zc3Mw5RDTh",
+  producthunt: "https://www.producthunt.com/posts/justclickonme",
 
   // third-party
   shopifyPolicyGenerator: "https://www.shopify.com/tools/policy-generator",

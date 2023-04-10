@@ -25,13 +25,16 @@ export const GetStartedFooter = () => {
 export const NavFooter = () => {
   return (
     <footer className="flex justify-between items-center mt-20 mb-6 rounded-lg bg-slate-900 py-3 px-5">
-      <Link href={routes.home} className="font-bold text-2xl">
+      <Link href={routes.home} className="font-bold text-2xl mr-5">
         <span className="">{">ME"}</span>
       </Link>
 
-      <div className="flex gap-5">
+      <div className="flex gap-x-5 gap-y-3 flex-wrap">
         <Link href={routes.policy}>Policy</Link>
         <Link href={routes.terms}>Terms</Link>
+        <a href={routes.producthunt} target="_blank" rel="noreferrer">
+          Product Hunt
+        </a>
         <a href={routes.github} target="_blank" rel="noreferrer">
           GitHub
         </a>

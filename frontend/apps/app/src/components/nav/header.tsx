@@ -15,6 +15,9 @@ const NavbarLinks = () => {
       <Link href={routes.benefits} scroll={false}>
         Benefits
       </Link>
+      <a href={routes.github} target="_blank" rel="noreferrer">
+        GitHub
+      </a>
       {/* <Link href={router.benefits}>Benefits</Link> */}
     </>
   )
@@ -53,6 +56,9 @@ export const Navbar = () => {
             <Link className="px-5 py-3" href={routes.benefits} scroll={false}>
               Benefits
             </Link>
+            <a href={routes.github} className="px-5 py-3" target="_blank" rel="noreferrer">
+              GitHub
+            </a>
           </div>
         )}
       </nav>
