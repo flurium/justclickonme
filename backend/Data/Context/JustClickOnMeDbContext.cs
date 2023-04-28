@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Data.Context;
 
-public class JustClickOnMeDbContext : IdentityDbContext<User>
+public class Db : IdentityDbContext<User>
 {
-    public JustClickOnMeDbContext(DbContextOptions options) : base(options)
+    public Db(DbContextOptions options) : base(options)
     {
     }
 

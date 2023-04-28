@@ -4,7 +4,6 @@ import Link from "next/link"
 import logo from "../../../public/logo.png"
 import { MenuIcon } from "../../shared/ui/icons"
 import { useEffect, useState } from "react"
-import { useAutoAnimate } from "@formkit/auto-animate/react"
 
 const NavbarLinks = () => {
   return (

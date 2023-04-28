@@ -10,7 +10,7 @@ public static class RedirectRouter
         router.MapGet("/{**slug}", Redirect);
     }
 
-    public static async Task<IResult> Redirect(string slug, JustClickOnMeDbContext db)
+    public static async Task<IResult> Redirect(string slug, Db db)
     {
         var link = await db.Links
             .Where(l => l.Slug == slug)

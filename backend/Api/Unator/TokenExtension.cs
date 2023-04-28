@@ -1,8 +1,9 @@
 ﻿using Api.Configuration;
 using Api.Services;
+using Microsoft.Extensions.Primitives;
 using System.Security.Claims;
 
-namespace Api.Ulib;
+namespace Api.Unator;
 
 public static class TokenExtension
 {
@@ -36,5 +37,28 @@ public static class TokenExtension
     {
         request.Cookies.TryGetValue(Constants.RefreshTokenCookie, out string? refreshToken);
         return refreshToken;
+    }
+
+    private static string? GetCsrfCookie(this HttpRequest request)
+    {
+        request.Cookies.TryGetValue(Constants.CsrfTokenCookie, out string? cookie);
+        return cookie;
+    }
+
+    private static string? GetCsrfHeader(this HttpRequest request)
+    {
+        request.Headers.TryGetValue(Constants.CsrfTokenHeader, out StringValues header);
+        return header;
+    }
+
+    public static bool IsCsrfProtected(this HttpRequest request)
+    {
+        var cookie = GetCsrfCookie(request);
+        if (cookie == null) return false;
+
+        var header = GetCsrfHeader(request);
+        if (header == null) return false;
+
+        return cookie == header;
     }
 }

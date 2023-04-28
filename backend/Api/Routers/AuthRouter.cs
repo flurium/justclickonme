@@ -1,11 +1,11 @@
 ﻿using Api.Configuration;
 using Api.Models;
 using Api.Services;
-using Api.Ulib;
+using Api.Unator;
 using Data.Context;
 using Data.Models;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Unator.EntityFrameworkCore;
 
 namespace Api.Routers;
 
@@ -14,8 +14,6 @@ public static class AuthRouter
     public static void MapAuth(this IEndpointRouteBuilder router)
     {
         router.MapPost("/api/auth/password", Password);
-        router.MapPost("/api/auth/google", Google);
-        //router.MapGet("/api/auth/refresh", Refresh);
 
         // now for testing
         router.MapPost("/api/auth/revoke", Revoke);
@@ -31,7 +29,11 @@ public static class AuthRouter
         });
     }
 
-    private static async Task<IResult> Password(PasswordInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
+    private static async Task<IResult> Password
+    (
+        PasswordInput input, UserManager<User> userManager,
+        TokenService tokenService, HttpResponse response
+    )
     => await U.CatchUnexpected(async () =>
     {
         var user = await userManager.FindByEmailAsync(input.Email);
@@ -47,10 +49,6 @@ public static class AuthRouter
 
             if (!res.Succeeded) return U.Error(500, "Sorry! We can't create account for you. Please try later or contact us to get help.");
         }
-        else if (user.PasswordHash == null)
-        {
-            return U.Error(409, "You should sign in with provider like: Google, ...");
-        }
         else
         {
             var signed = await userManager.CheckPasswordAsync(user, input.Password);
@@ -63,77 +61,21 @@ public static class AuthRouter
         return U.Authorized(token);
     });
 
-    private static async Task<IResult> Google(GoogleInput input, UserManager<User> userManager, TokenService tokenService, HttpResponse response)
-    => await U.CatchUnexpected(async () =>
-    {
-        var validPayload = await GoogleJsonWebSignature.ValidateAsync(input.IdToken);
-
-        var user = await userManager.FindByEmailAsync(validPayload.Email);
-        if (user == null)
-        {
-            user = new()
-            {
-                Email = validPayload.Email,
-                UserName = validPayload.Email,
-                EmailConfirmed = validPayload.EmailVerified,
-            };
-
-            var res = await userManager.CreateAsync(user);
-            if (!res.Succeeded) return U.Error(500, "Sorry! We can't create account for you.");
-        }
-
-        var token = tokenService.GenerateAccessToken(user.Id);
-        SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-        return U.Authorized(token);
-    });
-
-    /* Deprecated
-    private static async Task<IResult> Refresh(HttpRequest request, TokenService tokenService, UserManager<User> userManager, HttpResponse response)
-    {
-        try
-        {
-            var refreshToken = request.Cookies[Constants.RefreshTokenCookie];
-            if (refreshToken == null) return Results.BadRequest();
-
-            var tokenValidation = await tokenService.VerifyRefreshToken(refreshToken);
-            if (!tokenValidation.IsValid) return Results.BadRequest();
-
-            var uid = tokenValidation.ClaimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (uid == null) return Results.BadRequest();
-
-            var user = await userManager.FindByIdAsync(uid);
-            if (user == null) return Results.NotFound();
-
-            var refreshClaim = tokenValidation.ClaimsIdentity.FindFirst(Constants.RefreshTokenVersion);
-            if (refreshClaim == null) return Results.BadRequest();
-
-            var refreshTokenVersion = int.Parse(refreshClaim.Value);
-
-            if (user.RefreshTokenVersion != refreshTokenVersion) return Results.Unauthorized();
-
-            var accessToken = tokenService.GenerateAccessToken(user.Id);
-            SetCookie(response, Constants.RefreshTokenCookie, tokenService.GenerateRefreshToken(user));
-            return Results.Ok(new
-            {
-                accessToken
-            });
-        }
-        catch
-        {
-            return Results.BadRequest();
-        }
-    }
-    */
-
-    private static async Task<IResult> Revoke(JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    private static async Task<IResult> Revoke
+    (
+        Db db, HttpRequest req, TokenService tokenizer
+    )
     => await U.Authorized(req, tokenizer, db, async uid =>
     {
-        var user = db.Users.FirstOrDefault(u => u.Id == uid);
-        if (user == null) return new(404, "User isn't found");
+        var result = await db.EditOne<User>(
+            u => u.Id == uid,
+            u => u.RefreshTokenVersion += 1
+        );
 
-        user.RefreshTokenVersion += 1;
-        await db.SaveChangesAsync();
+        if (result.Data != null) U.Success();
 
-        return U.Success();
+        if (result.Error is EntityNotFoundException) return new(404, "User isn't found");
+
+        return U.Error(500, "Sorry we can't save changes.");
     });
 }

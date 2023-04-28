@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Data.Migrations
 {
-    [DbContext(typeof(JustClickOnMeDbContext))]
+    [DbContext(typeof(Db))]
     [Migration("20230318120730_LinkCountUsed")]
     partial class LinkCountUsed
     {

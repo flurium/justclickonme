@@ -6,14 +6,13 @@ namespace Api.Services
 {
     public class SubscriptionService
     {
-        private readonly JustClickOnMeDbContext db;
+        private readonly Db db;
 
-        public SubscriptionService(JustClickOnMeDbContext db)
+        public SubscriptionService(Db db)
         {
             this.db = db;
         }
 
-        /// <param name="subscripiton">Should be used const string from Subscription class</param>
         /// <returns>True if subscrition limit allow to add new link</returns>
         public async Task<bool> IsLimitAllow(string uid)
         {

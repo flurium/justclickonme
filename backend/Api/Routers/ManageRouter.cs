@@ -1,9 +1,10 @@
 ﻿using Api.Models;
 using Api.Services;
-using Api.Ulib;
+using Api.Unator;
 using Data.Context;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Unator.EntityFrameworkCore;
 
 namespace Api.Routers;
 
@@ -25,13 +26,16 @@ public static class ManageRouter
     /// Also return access token if only refresh token was given to request.
     /// If error ocupised data field will be null, and error field will contain message and http code.
     /// </remarks>
-    private static async Task<IResult> All(HttpRequest req, TokenService tokenizer, JustClickOnMeDbContext db)
+    private static async Task<IResult> All
+    (
+        HttpRequest req, TokenService tokenizer, Db db
+    )
     => await U.Authorized<IEnumerable<LinkOutput>>(req, tokenizer, db, async uid =>
     {
         return await db.Links
             .Where(l => l.UserId == uid)
             .Select(l => new LinkOutput(l.Slug, l.Destination, l.Title, l.Description, l.CreatedDateTime))
-            .ToListAsync();
+            .QueryMany();
     });
 
     /// <summary>
@@ -41,13 +45,15 @@ public static class ManageRouter
     /// Also return access token if only refresh token was given to request.
     /// If error ocupised data field will be null, and error field will contain message and http code.
     /// </remarks>
-    public static async Task<IResult> One(string slug, JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    public static async Task<IResult> One
+    (
+        string slug, Db db, HttpRequest req, TokenService tokenizer
+    )
     => await U.Authorized<Link>(req, tokenizer, db, async (uid) =>
     {
-        var link = await db.Links
-            .FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == slug);
+        var link = await db.Links.QueryOne(l => l.UserId == uid && l.Slug == slug);
 
-        if (link == null) return U.Error<Link>(404, "Link isn't found");
+        if (link == null) return U.Error(404, "Link isn't found");
         return link;
     });
 
@@ -62,22 +68,19 @@ public static class ManageRouter
     ///     DELETE /api/links/paragoda/logo
     ///
     /// </remarks>
-    private static async Task<IResult> Delete(string slug, JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    private static async Task<IResult> Delete
+    (
+        string slug, Db db, HttpRequest req, TokenService tokenizer
+    )
     => await U.Authorized(req, tokenizer, db, async (uid) =>
     {
-        var link = await db.Links.FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == slug);
-        if (link == null) return new(404, "Link isn't found");
+        var res = await db.DeleteOne<Link>(l => l.UserId == uid && l.Slug == slug);
 
-        try
-        {
-            db.Links.Remove(link);
-            var res = await db.SaveChangesAsync();
-            return U.Success();
-        }
-        catch
-        {
-            return new(500, "Sorry! We can't save changes.");
-        }
+        if (res == null) return U.Success();
+
+        if (res is EntityNotFoundException) return U.Error(404, "Link isn't found");
+
+        return U.Error(500, "Sorry! We can't save changes.");
     });
 
     /// <summary>
@@ -85,7 +88,7 @@ public static class ManageRouter
     /// </summary>
     /// <remarks>
     /// Also return access token if only refresh token was given to request.
-    /// If error ocupised data field will be null, and error field will contain message and http code.Sample request:
+    /// If error occupied data field will be null, and error field will contain message and http code.Sample request:
     /// Sample request:
     ///
     ///     PUT /api/links
@@ -98,26 +101,29 @@ public static class ManageRouter
     ///     }
     ///
     /// </remarks>
-    private static async Task<IResult> Update(EditLinkInput input, JustClickOnMeDbContext db, HttpRequest req, TokenService tokenizer)
+    private static async Task<IResult> Update
+    (
+        EditLinkInput input, Db db,
+        HttpRequest req, TokenService tokenizer
+    )
     => await U.Authorized<Link>(req, tokenizer, db, async (uid) =>
     {
-        var link = await db.Links.FirstOrDefaultAsync(l => l.UserId == uid && l.Slug == input.Slug);
-        if (link == null) return new(404, "Link isn't found");
+        var result = await db.EditOne<Link>(
+            link => link.UserId == uid && link.Slug == input.Slug,
+            link =>
+            {
+                if (input.NewSlug != null) link.Slug = input.NewSlug;
+                if (input.Destination != null) link.Destination = input.Destination;
+                if (input.Description != null) link.Description = input.Description;
+                if (input.Title != null) link.Title = input.Title;
+            }
+        );
 
-        if (input.NewSlug != null) link.Slug = input.NewSlug;
-        if (input.Destination != null) link.Destination = input.Destination;
-        if (input.Descripiton != null) link.Description = input.Descripiton;
-        if (input.Title != null) link.Title = input.Title;
+        if (result.Data != null) return result.Data;
 
-        try
-        {
-            await db.SaveChangesAsync();
-            return link;
-        }
-        catch
-        {
-            return new(500, "Sorry! We can't save changes.");
-        }
+        if (result.Error is EntityNotFoundException) return U.Error(404, "Link isn't found");
+
+        return U.Error(500, "Sorry! We can't save changes.");
     });
 
     /// <summary>
@@ -138,47 +144,60 @@ public static class ManageRouter
     ///     }
     ///
     /// </remarks>
-    private static async Task<IResult> Create(
-        CreateLinkInput input, SubscriptionService subscriptionService, JustClickOnMeDbContext db, HttpRequest request, TokenService tokenService
-    ) => await U.Authorized<Link>(request, tokenService, db, async (uid) =>
+    private static async Task<IResult> Create
+    (
+        CreateLinkInput input, SubscriptionService subscriptionService,
+        Db db, HttpRequest request, TokenService tokenService
+    )
+    => await U.Authorized<CreateLinkOutput>(request, tokenService, db, async (uid) =>
     {
         // TODO: update the usage
 
         var isAllowed = await subscriptionService.IsLimitAllow(uid);
-        if (!isAllowed) return new(402, "You reached limit of your subscription");
+        if (!isAllowed) return U.Error(402, "You reached limit of your subscription");
 
         var slug = input.Slug.Trim('/').Replace(" ", "-");
         var scopeEndIndex = slug.IndexOf("/");
         if (scopeEndIndex == -1)
         {
             // TOP LEVEL link
-            var owned = await db.Links.AnyAsync(l => l.Slug == slug);
+            var owned = await db.Links.AnyAsync(l => l.Slug == slug).ConfigureAwait(false);
             if (owned) return new(409, "Slug is taken");
-            var created = await db.Links.AddAsync(new(slug, input.Destination, uid, input.Title, input.Description));
-            await db.SaveChangesAsync();
-            return created.Entity;
+
+            var created = await db.CreateOne<Link>(new(slug, input.Destination, uid, input.Title, input.Description));
+
+            if (created.Data != null)
+            {
+                return new CreateLinkOutput(
+                    created.Data.Slug, created.Data.Destination, created.Data.Title,
+                    created.Data.Description, created.Data.CreatedDateTime
+                );
+            }
         }
 
         var scope = slug[..scopeEndIndex];
-        var withSameScope = await db.Links.FirstOrDefaultAsync(l => l.Slug.StartsWith(scope));
+        var withSameScope = await db.Links.QueryOne(l => l.Slug.StartsWith(scope));
 
         if (withSameScope != null)
         {
-            if (withSameScope.UserId != uid) return new(409, error: "Scope is taken");
+            if (withSameScope.UserId != uid) return U.Error(409, "Scope is taken");
 
-            var exist = await db.Links.AnyAsync(l => l.Slug == slug);
-            if (exist) return new(409, "Slug is taken");
+            var exist = await db.Links.AnyAsync(l => l.Slug == slug).ConfigureAwait(false);
+            if (exist) return U.Error(409, "Slug is taken");
         }
 
-        try
+        var createdLink = await db.CreateOne<Link>(new(slug, input.Destination, uid, input.Title, input.Description));
+        if (createdLink.Data != null)
         {
-            var res = await db.Links.AddAsync(new(slug, input.Destination, uid, input.Title, input.Description));
-            await db.SaveChangesAsync();
-            return res.Entity;
+            return new CreateLinkOutput(
+                createdLink.Data.Slug,
+                createdLink.Data.Destination,
+                createdLink.Data.Title,
+                createdLink.Data.Description,
+                createdLink.Data.CreatedDateTime
+            );
         }
-        catch
-        {
-            return new(500, "Sorry! We can't save changes.");
-        }
+
+        return U.Error(500, "Sorry, we can't save changes");
     });
 }

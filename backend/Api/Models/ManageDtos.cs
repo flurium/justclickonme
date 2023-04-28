@@ -13,7 +13,7 @@ public record EditLinkInput(
 
     string? Title,
 
-    string? Descripiton
+    string? Description
 );
 
 internal record LinkOutput(
@@ -23,7 +23,7 @@ internal record LinkOutput(
     string Destination,
 
     string Title,
-    string Descripiton,
+    string Description,
     DateTime CreatedDateTime
 );
 
@@ -39,3 +39,5 @@ public record CreateLinkInput(
 
     string Description
 );
+
+public record CreateLinkOutput(string Slug, string Destination, string Title, string Description, DateTime CreatedDateTime);

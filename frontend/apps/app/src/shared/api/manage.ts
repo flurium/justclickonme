@@ -1,14 +1,20 @@
 import { LinkType } from "../utils/types"
 import { call } from "./base"
 
+type Link = {
+  slug: string
+  destination: string
+  title: string
+  descripiton: string
+  createdDateTime: string // '2023-04-01T11:09:42.275045Z'
+}
+
 export const getLinks = async (prefix: string, refreshToken: string) => {
-  const data = await call<any>({
+  return await call<Link[]>({
     path: "/api/links",
     method: "GET",
     refreshToken,
   })
-
-  return data
 }
 
 type CreateLinkInput = {
@@ -19,17 +25,10 @@ type CreateLinkInput = {
 }
 
 export const createLink = async (link: CreateLinkInput) => {
-  const [data, res, status] = await call<any>({
+  return await call<any>({
     path: "/api/links",
     method: "POST",
     input: link,
     authRequired: true,
   })
-
-  if (status == "success") {
-    console.log("created")
-  }
-  if (status == "fail" || status == "error") {
-    console.log(res)
-  }
 }

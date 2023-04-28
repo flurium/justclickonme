@@ -1,9 +1,15 @@
 import { constants } from "../utils/helpers"
 import jwtDecode from "jwt-decode"
-import { AccessToken } from "./types"
-const domain = "https://justclickon.me"
+const domain = "http://localhost:5125" //"https://justclickon.me"
 
 const url = (path: string) => `${domain}${path}`
+
+const csrf = {
+  cookie: "iEvenDontKnowWhatItIs",
+  header: "x-secrets-about-your-cat",
+}
+
+// types
 
 type CallInput = {
   path: string
@@ -13,8 +19,33 @@ type CallInput = {
   authRequired?: boolean
 }
 
-type CallResponse<T> = [T, Response, "success"] | [null, Response, "fail"] | [null, null, "error"]
+type SuccessResult<T> = {
+  data: T
+  accessToken?: string
+}
 
+type FailedResult = {
+  error: {
+    message: string
+  }
+  accessToken?: string
+}
+
+type Result<T> =
+  | {
+      error: undefined
+      data: T
+      accessToken?: string
+    }
+  | {
+      data: undefined
+      error: {
+        message: string
+      }
+      accessToken?: string
+    }
+
+// store
 let apiStore: {
   accessToken: string | null
 } = {
@@ -26,6 +57,8 @@ export const setAccessToken = (token: string) => {
 }
 
 export const getAccessToken = () => apiStore.accessToken
+
+// functions
 
 const isAccessTokenExpired = (token: string) => {
   let decoded = jwtDecode<{ exp: number }>(token)
@@ -39,28 +72,21 @@ export const call = async <T>({
   input,
   refreshToken,
   authRequired,
-}: CallInput): Promise<CallResponse<T>> => {
-  let headers: Record<string, string> = {
+}: CallInput): Promise<Result<T>> => {
+  let headers: Headers = new Headers({
     "content-type": "application/json",
-  }
+  })
 
-  console.log(refreshToken)
   if (apiStore.accessToken && !isAccessTokenExpired(apiStore.accessToken)) {
-    headers["authorization"] = `bearer ${apiStore.accessToken}`
+    headers.append("authorization", `bearer ${apiStore.accessToken}`)
   } else if (refreshToken || authRequired) {
-    const refreshRes = await fetch(url("/api/auth/refresh"), {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        cookie: `${constants.refreshTokenCookie}=${refreshToken}`,
-      },
-    })
-
-    if (refreshRes.ok) {
-      const data = (await refreshRes.json()) as AccessToken
-      apiStore.accessToken = data.accessToken
-      headers["authorization"] = `bearer ${data.accessToken}`
-    }
+    // double cookie to prevent csrf
+    const csrfToken = (Math.random() + 1).toString(36)
+    headers.append(csrf.header, csrfToken)
+    headers.append(
+      "cookie",
+      `${constants.refreshTokenCookie}=${refreshToken}; ${csrf.cookie}=${csrfToken}`
+    )
   }
 
   try {
@@ -71,14 +97,17 @@ export const call = async <T>({
       body: input && JSON.stringify(input),
     })
 
-    const json = await data.json()
+    const json = (await data.json()) as Result<T>
 
-    if (data.ok) {
-      return [json as T, data, "success"]
+    if (json.accessToken) setAccessToken(json.accessToken)
+
+    return json
+  } catch (error) {
+    return {
+      data: undefined,
+      error: {
+        message: "Something unexpected happend. Your request failed.",
+      },
     }
-
-    return [json, data, "fail"]
-  } catch {
-    return [null, null, "error"]
   }
 }

@@ -212,11 +212,13 @@ export const getServerSideProps: GetServerSideProps<any> = async (ctx) => {
 
   if (!refreshCookie) return authRedirect
 
-  // const [links, res, status] = await getLinks("/", refreshCookie)
+  const result = await getLinks("/", refreshCookie)
 
   // if (status == "error" || status == "fail") return authRedirect
 
-  // const accessToken = getAccessToken()
+  const accessToken = getAccessToken()
+  console.log(accessToken)
+  console.log(result)
 
   return {
     props: {

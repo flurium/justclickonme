@@ -52,10 +52,10 @@ builder.Services.Configure<Secrets>(options =>
 });
 
 // Db
-builder.Services.AddDbContext<JustClickOnMeDbContext>(options => options.UseNpgsql(secrets.DbConnectionString));
+builder.Services.AddDbContext<Db>(options => options.UseNpgsql(secrets.DbConnectionString));
 
 // Auth
-builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<JustClickOnMeDbContext>().AddDefaultTokenProviders();
+builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<Db>().AddDefaultTokenProviders();
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<TokenService>();
