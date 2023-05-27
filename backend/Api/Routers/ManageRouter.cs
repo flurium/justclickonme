@@ -161,7 +161,7 @@ public static class ManageRouter
         if (scopeEndIndex == -1)
         {
             // TOP LEVEL link
-            var owned = await db.Links.AnyAsync(l => l.Slug == slug).ConfigureAwait(false);
+            var owned = await db.Links.Exist(l => l.Slug == slug);
             if (owned) return new(409, "Slug is taken");
 
             var created = await db.CreateOne<Link>(new(slug, input.Destination, uid, input.Title, input.Description));
@@ -182,7 +182,7 @@ public static class ManageRouter
         {
             if (withSameScope.UserId != uid) return U.Error(409, "Scope is taken");
 
-            var exist = await db.Links.AnyAsync(l => l.Slug == slug).ConfigureAwait(false);
+            var exist = await db.Links.Exist(l => l.Slug == slug);
             if (exist) return U.Error(409, "Slug is taken");
         }
 
